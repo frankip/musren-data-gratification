@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "redemptions",
+  "info": {
+    "singularName": "redemption",
+    "pluralName": "redemptions",
+    "displayName": "Redemption",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "transactionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "status": {
+      "type": "integer"
+    },
+    "responseRefId": {
+      "type": "string"
+    },
+    "message": {
+      "type": "text"
+    },
+    "msisdn": {
+      "type": "biginteger",
+      "private": true
+    },
+    "bundle": {
+      "type": "enumeration",
+      "enum": [
+        "MB_10",
+        "MB_20",
+        "MB_50",
+        "MB_75",
+        "MB_100",
+        "MB_150",
+        "MB_200"
+      ]
+    },
+    "company": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::company.company",
+      "inversedBy": "redemptions"
+    }
+  }
+}

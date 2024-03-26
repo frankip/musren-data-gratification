@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "companies",
+  "info": {
+    "singularName": "company",
+    "pluralName": "companies",
+    "displayName": "Company",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "registrationNumber": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "paymentPlan": {
+      "type": "enumeration",
+      "enum": [
+        "CASH",
+        "SEVEN_DAYS",
+        "FOURTEEN_DAYS",
+        "THIRTY_DAYS"
+      ]
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "websiteUrl": {
+      "type": "string"
+    },
+    "companyLogo": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "redemptions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::redemption.redemption",
+      "mappedBy": "company"
+    }
+  }
+}
