@@ -34,9 +34,9 @@ module.exports = {
     try {
       const id = ctx.request
       const input = get(ctx.request, "body");
-      const msisdn = get(input, "msisdn");
+      const msisdn = get(input, "MSISDN");
       // const bundleSize = `${get(input, "bundleSize")}MBS`;
-      const transactionId = get(input, "transactionId");
+      const transactionId = get(input, "TransID");
 
       if (!ctx.request.headers['content-type']) {
         console.log(ctx.request.headers['content-type']);
@@ -48,12 +48,12 @@ module.exports = {
       const targetAmount = process.env.TARGET_AMOUNT
 
       console.log('we are working');
-      const amount = input.amount || 200;
+      const amount = input.TransAmount || 200;
 
 
       console.log('target amount', targetAmount);
       if(amount > targetAmount){
-        const bundleSize = `${process.env.TARGET_AMOUNT}MBS`;
+        const bundleSize = `${process.env.TARGET_AMOUNT}`;
 
         console.log('------???????');
 
@@ -79,7 +79,7 @@ module.exports = {
             const payload = {
               transactionId: transactionId,
               company: company.id,
-              bundle: `MB_${input.bundleSize}`,
+              bundle: `MB_${bundleSize}`,
               msisdn: msisdn,
               status: 200,
               published: true,
