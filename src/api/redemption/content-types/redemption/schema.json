@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -44,9 +44,9 @@
     },
     "company": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "oneToOne",
       "target": "api::company.company",
-      "inversedBy": "redemptions"
+      "inversedBy": "redemption"
     }
   }
 }

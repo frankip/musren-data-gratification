@@ -362,6 +362,94 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiCompanyCompany extends Schema.CollectionType {
+  collectionName: 'companies';
+  info: {
+    singularName: 'company';
+    pluralName: 'companies';
+    displayName: 'Company';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    Name: Attribute.String;
+    email: Attribute.Email;
+    registrationNumber: Attribute.String;
+    address: Attribute.String;
+    paymentPlan: Attribute.Enumeration<
+      ['CASH', 'SEVEN_DAYS', 'FOURTEEN_DAYS', 'THIRTY_DAYS']
+    >;
+    phoneNumber: Attribute.String;
+    websiteUrl: Attribute.String;
+    companyLogo: Attribute.Media;
+    status: Attribute.Enumeration<['ACTIVE', 'INACTIVE']> &
+      Attribute.DefaultTo<'INACTIVE'>;
+    redemption: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'api::redemption.redemption'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiRedemptionRedemption extends Schema.CollectionType {
+  collectionName: 'redemptions';
+  info: {
+    singularName: 'redemption';
+    pluralName: 'redemptions';
+    displayName: 'Redemption';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    transactionId: Attribute.String & Attribute.Required & Attribute.Unique;
+    status: Attribute.Integer;
+    responseRefId: Attribute.String;
+    message: Attribute.Text;
+    msisdn: Attribute.BigInteger & Attribute.Private;
+    bundle: Attribute.Enumeration<
+      ['MB_10', 'MB_20', 'MB_50', 'MB_75', 'MB_100', 'MB_150', 'MB_200']
+    >;
+    company: Attribute.Relation<
+      'api::redemption.redemption',
+      'oneToOne',
+      'api::company.company'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::redemption.redemption',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::redemption.redemption',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -590,6 +678,53 @@ export interface PluginContentReleasesReleaseAction
   };
 }
 
+export interface PluginI18NLocale extends Schema.CollectionType {
+  collectionName: 'i18n_locale';
+  info: {
+    singularName: 'locale';
+    pluralName: 'locales';
+    collectionName: 'locales';
+    displayName: 'Locale';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+          max: 50;
+        },
+        number
+      >;
+    code: Attribute.String & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::i18n.locale',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUsersPermissionsPermission
   extends Schema.CollectionType {
   collectionName: 'up_permissions';
@@ -741,141 +876,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
-export interface PluginI18NLocale extends Schema.CollectionType {
-  collectionName: 'i18n_locale';
-  info: {
-    singularName: 'locale';
-    pluralName: 'locales';
-    collectionName: 'locales';
-    displayName: 'Locale';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    name: Attribute.String &
-      Attribute.SetMinMax<
-        {
-          min: 1;
-          max: 50;
-        },
-        number
-      >;
-    code: Attribute.String & Attribute.Unique;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'plugin::i18n.locale',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'plugin::i18n.locale',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiCompanyCompany extends Schema.CollectionType {
-  collectionName: 'companies';
-  info: {
-    singularName: 'company';
-    pluralName: 'companies';
-    displayName: 'Company';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    Name: Attribute.String;
-    email: Attribute.Email;
-    registrationNumber: Attribute.String;
-    address: Attribute.String;
-    paymentPlan: Attribute.Enumeration<
-      ['CASH', 'SEVEN_DAYS', 'FOURTEEN_DAYS', 'THIRTY_DAYS']
-    >;
-    phoneNumber: Attribute.String;
-    websiteUrl: Attribute.String;
-    companyLogo: Attribute.Media;
-    redemptions: Attribute.Relation<
-      'api::company.company',
-      'oneToMany',
-      'api::redemption.redemption'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::company.company',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::company.company',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiRedemptionRedemption extends Schema.CollectionType {
-  collectionName: 'redemptions';
-  info: {
-    singularName: 'redemption';
-    pluralName: 'redemptions';
-    displayName: 'Redemption';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    transactionId: Attribute.String & Attribute.Required & Attribute.Unique;
-    status: Attribute.Integer;
-    responseRefId: Attribute.String;
-    message: Attribute.Text;
-    msisdn: Attribute.BigInteger & Attribute.Private;
-    bundle: Attribute.Enumeration<
-      ['MB_10', 'MB_20', 'MB_50', 'MB_75', 'MB_100', 'MB_150', 'MB_200']
-    >;
-    company: Attribute.Relation<
-      'api::redemption.redemption',
-      'manyToOne',
-      'api::company.company'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::redemption.redemption',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::redemption.redemption',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -886,16 +886,16 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::company.company': ApiCompanyCompany;
+      'api::redemption.redemption': ApiRedemptionRedemption;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
+      'plugin::i18n.locale': PluginI18NLocale;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'plugin::i18n.locale': PluginI18NLocale;
-      'api::company.company': ApiCompanyCompany;
-      'api::redemption.redemption': ApiRedemptionRedemption;
     }
   }
 }
