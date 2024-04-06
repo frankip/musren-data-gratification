@@ -44,9 +44,9 @@
     },
     "company": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::company.company",
-      "inversedBy": "redemption"
+      "inversedBy": "redemptions"
     }
   }
 }

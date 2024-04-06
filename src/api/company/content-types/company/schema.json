@@ -55,11 +55,16 @@
       ],
       "default": "INACTIVE"
     },
-    "redemption": {
+    "redemptions": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::redemption.redemption",
       "mappedBy": "company"
+    },
+    "admin_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "admin::user"
     }
   }
 }
