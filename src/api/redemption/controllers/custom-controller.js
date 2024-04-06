@@ -37,6 +37,7 @@ module.exports = {
       const msisdn = get(input, "MSISDN");
       // const bundleSize = `${get(input, "bundleSize")}MBS`;
       const transactionId = get(input, "TransID");
+      const shortCode = get(input, "BusinessShortCode");
 
       if (!ctx.request.headers['content-type']) {
         console.log(ctx.request.headers['content-type']);
@@ -55,16 +56,23 @@ module.exports = {
       if(amount > targetAmount){
         const bundleSize = `${process.env.TARGET_AMOUNT}`;
 
-        console.log('------???????');
+
 
       const count = await strapi.db.query('api::company.company').findWithCount()
 
       // Identify the company the transaction belongs to
-      // to update logic
-      const company = await strapi.db.query("api::company.company").findOne({where: {id:1}})
 
+      const company = await strapi.db.query("api::business-payment-code.business-payment-code").findOne({where:
+        {
+          BusinessShortCode:shortCode
+        },
+        populate: {
+          company: true,
+        },
+      })
+      console.log('------???????', company);
       if(company){
-        const validated = intergrationValidation(company);
+        const validated = intergrationValidation(company.company);
         if(validated){
           const existingRedemption = await strapi.db.query('api::redemption.redemption').findOne({
             where: {
@@ -78,7 +86,7 @@ module.exports = {
             // create the default payload to be saved to redemptions table
             const payload = {
               transactionId: transactionId,
-              company: company.id,
+              company: company.company.id,
               bundle: `MB_${bundleSize}`,
               msisdn: msisdn,
               status: 200,

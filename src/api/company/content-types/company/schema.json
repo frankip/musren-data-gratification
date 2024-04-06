@@ -65,6 +65,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "admin::user"
+    },
+    "business_payment_codes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::business-payment-code.business-payment-code",
+      "mappedBy": "company"
     }
   }
 }

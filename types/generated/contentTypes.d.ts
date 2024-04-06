@@ -362,6 +362,46 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiBusinessPaymentCodeBusinessPaymentCode
+  extends Schema.CollectionType {
+  collectionName: 'business_payment_codes';
+  info: {
+    singularName: 'business-payment-code';
+    pluralName: 'business-payment-codes';
+    displayName: 'BusinessPaymentsCode';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    accountName: Attribute.String & Attribute.Required & Attribute.Unique;
+    type: Attribute.Enumeration<['Paybill', 'Buy Goods Till']>;
+    BusinessShortCode: Attribute.Integer &
+      Attribute.Required &
+      Attribute.Unique;
+    company: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'manyToOne',
+      'api::company.company'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCompanyCompany extends Schema.CollectionType {
   collectionName: 'companies';
   info: {
@@ -386,10 +426,20 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
     companyLogo: Attribute.Media;
     status: Attribute.Enumeration<['ACTIVE', 'INACTIVE']> &
       Attribute.DefaultTo<'INACTIVE'>;
-    redemption: Attribute.Relation<
+    redemptions: Attribute.Relation<
+      'api::company.company',
+      'oneToMany',
+      'api::redemption.redemption'
+    >;
+    admin_user: Attribute.Relation<
       'api::company.company',
       'oneToOne',
-      'api::redemption.redemption'
+      'admin::user'
+    >;
+    business_payment_codes: Attribute.Relation<
+      'api::company.company',
+      'oneToMany',
+      'api::business-payment-code.business-payment-code'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -430,7 +480,7 @@ export interface ApiRedemptionRedemption extends Schema.CollectionType {
     >;
     company: Attribute.Relation<
       'api::redemption.redemption',
-      'oneToOne',
+      'manyToOne',
       'api::company.company'
     >;
     createdAt: Attribute.DateTime;
@@ -886,6 +936,7 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::business-payment-code.business-payment-code': ApiBusinessPaymentCodeBusinessPaymentCode;
       'api::company.company': ApiCompanyCompany;
       'api::redemption.redemption': ApiRedemptionRedemption;
       'plugin::upload.file': PluginUploadFile;
