@@ -12,22 +12,26 @@ There are 2 ways you can set up
 1. docker
 2. local set up 
 
-### - Docker
+> ### - Docker
 
 #### Prerequisites
 ```
-Before we get started, we need to make sure we have a few things installed and available on our machine.
+To get started, we need to make sure we have a few things installed and available on our machine.
 ```
 - Docker Engine [link](https://www.docker.com/get-started/)
+- Docker Composer [Link](https://docs.docker.com/compose/install/)
 
 
-### - Local setUp
+> ### - Local setUp
 
-#### Prerequistes
+### Prerequistes
 
-#### Node >= 18
+- MYSQL
 
-##### MacOS
+- Node >= 18
+
+ ##### MacOS installations 
+
 
 ```bash
 curl "https://nodejs.org/dist/latest/node-${VERSION:-$(wget -qO- https://nodejs.org/dist/latest/ | sed -nE 's|.*>node-(.*)\.pkg</a>.*|\1|p')}.pkg" > "$HOME/Downloads/node-latest.pkg" && sudo installer -store -pkg "$HOME/Downloads/node-latest.pkg" -target "/"
@@ -121,6 +125,49 @@ Each of the below keys need to be applied to each deployment (dev, uat, prod) an
 | NODE_ENV          | Node env to use in deployment
 |
 
+
+## How to run the project
+
+once the project is running, 
+it should now be available at http://localhost:1337
+
+it will redirect you to an admin page, 
+sign up or login if you have an account, 
+
+When signing up up you will need to add atleast
+ - One company
+ - One Business payment code
+
+To test api on postman 
+
+you can find the api documenation here http://localhost:1337/documentation/v1.0.0
+
+make a post request to http://localhost:1337/api/redemptions/gratify endpoint
+
+
+payload
+``` bash 
+
+sample payload from C2b API
+
+{    
+   "TransactionType": "Pay Bill",
+   "TransID":"unique id",
+   "TransTime":"2024-04-08T13:00:49.835Z",
+   "TransAmount":"1000",
+   "BusinessShortCode": "700638",
+   "BillRefNumber":"invoice008",
+   "InvoiceNumber":"",
+   "OrgAccountBalance":"",
+   "ThirdPartyTransID": "",
+   "MSISDN":"25472xxxxxxxxx",
+   "FirstName":"John",
+   "MiddleName":"",
+   "LastName":"Doe"
+}
+
+replace the MSISDN with the valid number 
+```
 ## Built With
 
 Details of the tech stack that has been used.

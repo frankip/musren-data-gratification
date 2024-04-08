@@ -93,10 +93,12 @@ module.exports = {
               published: true,
             }
 
-            const auth = await strapi.service("api::redemption.redemption").generateAccessToken()
+            const auth = await strapi.service("api::redemption.redemption").generateAccessToken();
+            const testAuth = await strapi.service("api::redemption.redemption").testAccessToken();
 
 
-            console.log('kkkkkkkkkkkkkkkkkkkkkkkk',auth);
+            // console.log('kkkkkkkkkkkkkkkkkkkkkkkk',auth);
+            console.log('kkkkkkkkkkkkkkkkkkkkkkkk',testAuth);
 
             try {
               const redeemBundleRequest = {

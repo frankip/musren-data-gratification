@@ -1,6 +1,8 @@
 'use strict';
 
 const fetch = require("node-fetch");
+const crypto = require('crypto');
+
 
 const {
   APP_PIN,
@@ -182,7 +184,102 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
       }
     },
 
+    async generateDigest(nonce, created, password) {
+
+    },
+
+    async testAccessToken(){
+      const url = 'https://159.138.162.228:18312/tmf-api/party/v1/Dispatch'
+      const username = process.env.AppKey;
+      const password = process.env.AppSecret;
+      const nonce = crypto.randomBytes(32).toString('hex');
+      const created = new Date().toISOString().slice(0, -5) + 'Z';
+      const digest = generateDigest(nonce, created, password);
+
+      const aust = {
+        "nonce": nonce,
+        "digest": digest,
+        "created": created
+      }
+
+      console.log('---', aust);
+
+      let headers = {
+        "Authorization": `WSSE realm="DOP",profile="UsernameToken"`,
+        "X-WSSE":`UsernameToken Username="${username}",PasswordDigest=${digest},Nonce=${nonce}, Created="${created}"`,
+        "X-RequestHeader": `request TransId="${Date.now()/1000}"`,
+
+      };
+
+
+      const payload = {
+        ProductID:"SAFPROMO10MBS",
+        MSISDN:"724681326",
+      };
+
+
+      try {
+        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            ...headers,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        console.log('>>>>>response', res.ok);
+
+        if (!res.ok) {
+          throw new Error(`Request failed with >>>: ${res.status}`);
+        }
+
+        const contentType = res.headers.get('Content-Type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          console.warn("Response is not JSON:", text);
+        }else {
+          const data = await res.json();
+          console.warn("Response is JSON:", data);
+          // Process valid JSON data
+        }
+
+
+        // const data = await res.json();
+        // console.log('dajdijfda----------', data);
+
+        const response = {
+          success: true,
+          data: res,
+        };
+        return response;
+      } catch (err) {
+        strapi.log.debug("generateAccessTokenError", err);
+        console.log({
+          err,
+        });
+        throw err
+      }
+
+    },
+
+
 
 
 
 }));
+function generateDigest(nonce, created, password) {
+  // Combine nonce, created timestamp, and password
+  const data = nonce + created + password;
+
+  // Create a SHA-256 hash object
+  const hash = crypto.createHash('sha256');
+
+  // Update the hash with the combined data
+  hash.update(data);
+
+  // Digest the hash in Base64 encoding
+  const digest = hash.digest('base64');
+
+  return digest;
+}
