@@ -47,8 +47,6 @@ module.exports = {
       }
 
       const targetAmount = process.env.TARGET_AMOUNT
-
-      console.log('we are working');
       const amount = input.TransAmount || 200;
 
 
@@ -70,7 +68,6 @@ module.exports = {
           company: true,
         },
       })
-      console.log('------???????', company);
       if(company){
         const validated = intergrationValidation(company.company);
         if(validated){
@@ -93,38 +90,24 @@ module.exports = {
               published: true,
             }
 
-            const auth = await strapi.service("api::redemption.redemption").generateAccessToken();
-            const testAuth = await strapi.service("api::redemption.redemption").testAccessToken();
+            console.log('this point reached');
+
+            const auth = await strapi.service("api::redemption.redemption").dopGratification(msisdn);
 
 
-            // console.log('kkkkkkkkkkkkkkkkkkkkkkkk',auth);
-            console.log('kkkkkkkkkkkkkkkkkkkkkkkk',testAuth);
-
+            console.log('kkkkkkkkkkk-dop-gratification',auth);
             try {
               const redeemBundleRequest = {
-                url: 'https://api.safaricom.co.ke/v2/consumer-resources/auth/billing/redemptionrequest',
-                headers: {
-                  Authorization: 'Bearer Bi9JMiHWeHazWy8seyGoc6sT6MrT',
-                  'Content-Type': 'application/json',
-                  'Accept-Encoding': 'application/json'
-                },
-                requestBody: {
-                  id: '0724681326',
-                  description: 'SAFPROMO10MBS',
-                  pin: 'AFRONNECT',
-                  password: 'Affr0nn3ct!'
-                },
                 data: {
-                  responseRefId: '66422-36873496-1',
-                  responseId: '254 *** *** ***',
-                  responseDesc: 'Successfully allocated SAFPROMO10MBS resources. Balance now at 1963 units',
-                  responseStatus: '1000'
-                }
+                  "Result": "1000120200",
+                  "Description": "query subscribe relation auth faild.",
+                  "TransactionID": "1712608289"
+              }
             }
 
           // update the payload with data from Safaricom response
-          payload['responseRefId'] = redeemBundleRequest.data.responseRefId;
-          payload['message'] = redeemBundleRequest.data.responseDesc.split('Balance', 1).join();
+          payload['responseRefId'] = redeemBundleRequest.data.TransactionID;
+          payload['message'] = redeemBundleRequest.data.TransactionID;
 
 
           const responseCode = get(

@@ -2,18 +2,13 @@
 
 const fetch = require("node-fetch");
 const crypto = require('crypto');
+const CryptoJS = require('crypto-js');
 
 
 const {
-  APP_PIN,
   ACCOUNT_ID,
-  GRANT_TYPE,
-  MERCHANT_ID,
   APP_PASSWORD,
-  AUTH_BASE_URL,
-  REDEEM_BASE_URL,
-  MERCHANT_PASSWORD,
-  BALANCE_REDEEM_BASE_URL
+  DOP_URL
 } = require("./consts");
 
 /**
@@ -24,203 +19,30 @@ const { createCoreService } = require('@strapi/strapi').factories;
 
 module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
 
+    async dopGratification(msisdn){
 
-    async redeemBundle(accessToken, phoneNumber, bundleSize) {
-      const url = `${REDEEM_BASE_URL}`;
-      console.log("url>>>>", accessToken, phoneNumber, bundleSize);
-
-
-      let headers = {
-        Authorization: "Bearer " + accessToken,
-        "Content-Type": "application/json",
-        "Accept-Encoding": "application/json",
-      };
-
-      const requestBody = {
-        // either 254701234567 or 701234567 or 0701234567
-        id: phoneNumber,
-        description: `SAFPROMO${bundleSize}`,
-        pin: APP_PIN,
-        password: APP_PASSWORD,
-      };
-
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            ...headers,
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        const data = await res.json();
-
-        if (data.err) {
-          console.log({
-            name: "hereee",
-            error: data.err,
-            data
-          });
-        }
-        console.log({
-          requestBody,
-          data,
-        });
-
-        const response = {
-          success: true,
-          data,
-        };
-        return response;
-      } catch (err) {
-        strapi.log.debug("queryBalance", err);
-        console.log({requestBody, err});
-        throw err
-      }
-    },
-
-    /**
-     * Fetch for bundle balance
-     * args
-     *    "accessToken": string
-     *    "bundleSize": string
-     * returns
-          "responseRefId": string,
-          "responseId": string,
-          "responseDesc": "string,
-          "responseStatus": string
-     */
-    async queryBalance(accessToken, bundleSize) {
-      const url = `${BALANCE_REDEEM_BASE_URL}/query/balance`;
+      const [timespan, noncetime] = getDateTime();
+      const [base64, nonce] = generateDigest(noncetime, timespan, APP_PASSWORD);
+      console.log(nonce);
 
       let headers = {
-        Authorization: "Bearer " + accessToken,
-        "Content-Type": "application/json",
-        "Accept-Encoding": "application/json",
-      };
-
-      const requestBody = {
-        id: ACCOUNT_ID,
-        description: `SAFPROMO${bundleSize}`,
-        pin: APP_PIN,
-        password: APP_PASSWORD,
-      };
-
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            ...headers,
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        const data = await res.json();
-        console.log({
-          url,
-          headers,
-          requestBody,
-          data,
-        });
-
-        const response = {
-          success: true,
-          data,
-        };
-        return response;
-      } catch (err) {
-        strapi.log.debug("queryBalance", err);
-        console.log({
-          url,
-          headers,
-          requestBody,
-          err,
-        });
-        const response = {
-          success: false,
-          error: err,
-        };
-        return response;
-      }
-    },
-    /**
-     * Generate access token (valid for 1hr)
-     * returns
-          "access_token": string,
-          "expires_in": string (seconds)
-     */
-    async generateAccessToken() {
-      const url = `${AUTH_BASE_URL}/generate?grant_type=${GRANT_TYPE}`;
-      // const url = AUTH_BASE_URL
-      const username = `${MERCHANT_ID}`;
-      const password = `${MERCHANT_PASSWORD}`;
-      const authString = `${username}:${password}`;
-
-      let headers = {
-        Authorization:
-          "Basic " + Buffer.from(authString, "binary").toString("base64"),
-          // "Bearer cFJZcjZ6anEwaThMMXp6d1FETUxwWkIzeVBDa2hNc2M6UmYyMkJmWm9nMHFRR2xWOQ=="
-      };
-
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            ...headers,
-          },
-        });
-        const data = await res.json();
-        const response = {
-          success: true,
-          data,
-        };
-        return response;
-      } catch (err) {
-        strapi.log.debug("generateAccessToken", err);
-        console.log({
-          err,
-        });
-        throw err
-      }
-    },
-
-    async generateDigest(nonce, created, password) {
-
-    },
-
-    async testAccessToken(){
-      const url = 'https://159.138.162.228:18312/tmf-api/party/v1/Dispatch'
-      const username = process.env.AppKey;
-      const password = process.env.AppSecret;
-      const nonce = crypto.randomBytes(32).toString('hex');
-      const created = new Date().toISOString().slice(0, -5) + 'Z';
-      const digest = generateDigest(nonce, created, password);
-
-      const aust = {
-        "nonce": nonce,
-        "digest": digest,
-        "created": created
-      }
-
-      console.log('---', aust);
-
-      let headers = {
-        "Authorization": `WSSE realm="DOP",profile="UsernameToken"`,
-        "X-WSSE":`UsernameToken Username="${username}",PasswordDigest=${digest},Nonce=${nonce}, Created="${created}"`,
+        "Authorization":"WSSE realm=\"DOP\", profile=\"UsernameToken\"",
+        "X-WSSE":"UsernameToken Username=\""+ACCOUNT_ID+"\", PasswordDigest=\""+base64+"\", Nonce=\""+nonce+"\", Created=\""+timespan+"\"",
         "X-RequestHeader": `request TransId="${Date.now()/1000}"`,
+        "Content-Type": "application/json; charset=UTF-8",
 
       };
-
-
       const payload = {
-        ProductID:"SAFPROMO10MBS",
-        MSISDN:"724681326",
-      };
+          "ProductID":"SAFPROMO10MBS",
+          "MSISDN":msisdn,
+          "extendInfos":[{"key":"Specification", "value":"450"}]
+      }
 
+      console.log(payload);
 
       try {
         process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-        const res = await fetch(url, {
+        const res = await fetch(DOP_URL, {
           method: "POST",
           headers: {
             ...headers,
@@ -228,29 +50,14 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
           body: JSON.stringify(payload),
         });
 
-        console.log('>>>>>response', res.ok);
-
         if (!res.ok) {
           throw new Error(`Request failed with >>>: ${res.status}`);
         }
-
-        const contentType = res.headers.get('Content-Type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await res.text();
-          console.warn("Response is not JSON:", text);
-        }else {
-          const data = await res.json();
-          console.warn("Response is JSON:", data);
-          // Process valid JSON data
-        }
-
-
-        // const data = await res.json();
-        // console.log('dajdijfda----------', data);
-
+        const data = await res.json();
+        console.warn("Response is JSON:", data);
         const response = {
           success: true,
-          data: res,
+          data: data,
         };
         return response;
       } catch (err) {
@@ -260,26 +67,42 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
         });
         throw err
       }
-
-    },
-
-
-
-
-
+    }
 }));
-function generateDigest(nonce, created, password) {
+function generateDigest(noncetime, timespan, password) {
+
+  var nonveArray = CryptoJS.enc.Utf8.parse(noncetime);
+
+  var nonce=CryptoJS.enc.Base64.stringify(nonveArray);
+
   // Combine nonce, created timestamp, and password
-  const data = nonce + created + password;
+  var rawStr =nonce+timespan+password;//Unencoded initial packet
 
-  // Create a SHA-256 hash object
-  const hash = crypto.createHash('sha256');
+  var wordArray = CryptoJS.enc.Utf8.parse(rawStr);
 
-  // Update the hash with the combined data
-  hash.update(data);
+  var SHA256 = CryptoJS.SHA256(wordArray);
 
-  // Digest the hash in Base64 encoding
-  const digest = hash.digest('base64');
+  //var SHA256Array = CryptoJS.enc.Utf8.parse(SHA256);
 
-  return digest;
+  var base64 = CryptoJS.enc.Base64.stringify(SHA256);
+
+  return [base64, nonce];
 }
+
+function getDateTime(){
+  const ISOTIME = new Date().toISOString();
+  let timespan = ISOTIME.slice(0, -5) + 'Z';
+
+  const regex = /\d+/g;
+  let noncetime = ISOTIME.match(regex);
+
+  const index = noncetime.indexOf('08');
+  if (index > -1) { // only splice array when item is found
+    noncetime.splice(index, 1); // 2nd parameter means remove one item only
+  }
+  let formartedNonceTime =noncetime.join("")
+
+  console.log('get date time',formartedNonceTime);
+  return [timespan, formartedNonceTime]
+}
+
