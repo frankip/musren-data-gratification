@@ -27,6 +27,9 @@ const config = {
     // 'zh-Hans',
     // 'zh',
   ],
+  tutorials: false,
+    // Disable notifications about new Strapi releases
+  notifications: { releases: false },
 };
 
 const bootstrap = (app) => {

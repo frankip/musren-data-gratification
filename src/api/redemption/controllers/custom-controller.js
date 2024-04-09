@@ -65,7 +65,9 @@ module.exports = {
           BusinessShortCode:shortCode
         },
         populate: {
-          company: true,
+          company:{
+            fields:['id', 'Name']
+          }
         },
       })
       if(company){
