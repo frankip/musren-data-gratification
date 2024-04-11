@@ -23,8 +23,8 @@ module.exports = () => ({
         }
       });
 
-      const successful = redemptions.filter(redemption => redemption.status == '200')
-      const unsuccessful = redemptions.filter(redemption => redemption.status == '400' ||  redemption.status == '500')
+      const successful = redemptions.filter(redemption => redemption.status == 200)
+      const unsuccessful = redemptions.filter(redemption => redemption.status == 400 ||  redemption.status == 500)
       const response = {
         totalRedemptions:{
           count: redemptions.length,
@@ -41,7 +41,7 @@ module.exports = () => ({
       return response;
 
     } catch (error) {
-      return error;
+      throw new Error(`Failed to query Redemptition, because of this -> ${error}`);
     }
   }
 });

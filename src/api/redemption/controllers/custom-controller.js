@@ -1,7 +1,7 @@
 const { get } = require("lodash");
 const { isFuture } = require("date-fns");
 
-const SUCCESS_CODES = ["4000", "1000"];
+const SUCCESS_CODES = ["0"];
 const THRESHOLD_ERROR_CODES = ["429.001"];
 const SECURITY_ERROR_CODES = ["400.003"];
 const SERVER_ERROR_CODES = ["500.001", "503.001", "504.001"];
@@ -17,16 +17,14 @@ const VALIDATION_ERROR_CODES = [
 
 // const { createCoreController } = require('@strapi/strapi').factories;
 
-const intergrationValidation = (integration) => {
-  const integrationId = integration.id;
-  const integrationStatus = integration.status;
-  // const integrationOwnerId = integration.company.id;
-  const integrationExpiry = integration.expirationDate;
-  const integrationIsActive = integrationStatus === "ACTIVE";
+const companyValidation = (company) => {
+  const companyStatus = company.status;
+  const companyExpiry = company.expirationDate;
+  const companyIsActive = companyStatus === "ACTIVE";
 
-  const integrationNotExpired = isFuture(new Date(integrationExpiry));
-  const clearedIntegration = integrationIsActive && !integrationNotExpired;
-  return clearedIntegration
+  const companyNotExpired = isFuture(new Date(companyExpiry));
+  const clearedcompany = companyIsActive && !companyNotExpired;
+  return companyIsActive
 }
 
 module.exports = {
@@ -35,7 +33,6 @@ module.exports = {
       const id = ctx.request
       const input = get(ctx.request, "body");
       const msisdn = get(input, "MSISDN");
-      // const bundleSize = `${get(input, "bundleSize")}MBS`;
       const transactionId = get(input, "TransID");
       const shortCode = get(input, "BusinessShortCode");
 
@@ -47,159 +44,129 @@ module.exports = {
       }
 
       const targetAmount = process.env.TARGET_AMOUNT
-      const amount = input.TransAmount || 200;
+      const amount = input.TransAmount || 0;
 
 
       console.log('target amount', targetAmount);
-      if(amount > targetAmount){
-        const bundleSize = `${process.env.TARGET_AMOUNT}`;
 
-
-
-      const count = await strapi.db.query('api::company.company').findWithCount()
+      const checkAmount = amount < targetAmount ? (() => { ctx.badRequest("Amount is less than or equal to targetAmount"); })() : {};
+      const bundleSize = `${process.env.TARGET_AMOUNT}`;
 
       // Identify the company the transaction belongs to
-
       const company = await strapi.db.query("api::business-payment-code.business-payment-code").findOne({where:
         {
           BusinessShortCode:shortCode
         },
         populate: {
           company:{
-            fields:['id', 'Name']
+            fields:['id', 'Name', 'status']
           }
         },
       })
-      if(company){
-        const validated = intergrationValidation(company.company);
-        if(validated){
-          const existingRedemption = await strapi.db.query('api::redemption.redemption').findOne({
-            where: {
-              transactionId: transactionId,
-              company: company.id,
-            }
-          });
-          // if there are no duplicate we proceede to send the request to safaricom
-          if(!existingRedemption){
+      const checkCompany = !company ? (() => {
+        ctx.badRequest(`Sorry No company Associated with the ${input.TransactionType}`);
+      })() : {};
 
-            // create the default payload to be saved to redemptions table
-            const payload = {
-              transactionId: transactionId,
-              company: company.company.id,
-              bundle: `MB_${bundleSize}`,
-              msisdn: msisdn,
-              status: 200,
-              published: true,
-            }
+      const validated = companyValidation(company.company);
+      const checkValidation = !validated ? (() => {
+        ctx.badRequest("The associated Company is Inactive");
+      })() : {};
 
-            console.log('this point reached');
-
-            const auth = await strapi.service("api::redemption.redemption").dopGratification(msisdn);
-
-
-            console.log('kkkkkkkkkkk-dop-gratification',auth);
-            try {
-              const redeemBundleRequest = {
-                data: {
-                  "Result": "1000120200",
-                  "Description": "query subscribe relation auth faild.",
-                  "TransactionID": "1712608289"
-              }
-            }
-
-          // update the payload with data from Safaricom response
-          payload['responseRefId'] = redeemBundleRequest.data.TransactionID;
-          payload['message'] = redeemBundleRequest.data.TransactionID;
-
-
-          const responseCode = get(
-            redeemBundleRequest.data,
-            "responseStatus"
-          );
-
-          // check for success codes
-          const isSuccessful = SUCCESS_CODES.includes(responseCode);
-          if(isSuccessful){
-            const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
-            const response = {
-              ...input,
-              company: company.Name,
-              status: "Success",
-              statusCode: 200,
-              message: "Successfully gratified user",
-            };
-            return response;
-          }else{
-            payload.status = 400;
-            const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
-            const validationErrorResponse = {
-              ...input,
-              status: "Error",
-              statusCode: 400,
-              message: "Sorry, something did not go right",
-              error: {
-                responseRefId: payload.responseRefId,
-                responseDesc: payload.message
-              }
-            };
-            return validationErrorResponse;
-          }
-        } catch (error) {
-              // await strapi.db.query('api::redemption.redemption').create({data: payload});
-              payload.status = 500;
-              payload.message = error
-              const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
-              console.log('error');
-              return {
-                ...input,
-                status: "Error",
-                statusCode: 500,
-                message: "Server Error",
-              };
-
-            }
-          }else{
-            const errorResponse = {
-              ...input,
-              status: "Error",
-              statusCode: 409,
-              message: "Duplicate redemption transaction",
-              duplicateTransaction: {
-                transactionId: existingRedemption.transactionId,
-                bundleSize: existingRedemption.bundle,
-                status: existingRedemption.status,
-                date: new Date(existingRedemption.created_at).toString()
-              }
-            };
-            return errorResponse;
-          }
-        }else{
-          return {
-            ...input,
-            status: "Error",
-            statusCode: 403,
-            message: "Authentication error",
-          };
+      // check if there is existing simialar redemptions
+      const existingRedemption = await strapi.db.query('api::redemption.redemption').findOne({
+        where: {
+          transactionId: transactionId,
+          company: company.id,
         }
+      });
 
+      const checkRedemption = existingRedemption ? (() => {
+        ctx.badRequest("Duplicate redemption transaction", {
+          duplicateTransaction: {
+            transactionId: existingRedemption.transactionId,
+            bundleSize: existingRedemption.bundle,
+            status: existingRedemption.status,
+            date: new Date(existingRedemption.created_at).toString()
+          }
+        });
+      })() : {};
+
+      // create the default payload to be saved to redemptions table
+      const payload = {
+        transactionId: transactionId,
+        company: company.company.id,
+        bundle: `MB_${bundleSize}`,
+        msisdn: msisdn,
+        status: 200,
+        published: true,
       }
-    }
-    else{
+
+      try {
+        // if there are no duplicate we proceede with the request
+        const redeemBundleRequest = await strapi.service("api::redemption.redemption").dopGratification(msisdn);
+      //   const redeemBundleRequest = {
+      //     data: {
+      //       "Result": "1000120200",
+      //       "Description": "query subscribe relation auth faild.",
+      //       "TransactionID": "1712608289"
+      //   }
+      // }
+
+      // update the payload with data from Safaricom response
+      payload['responseRefId'] = redeemBundleRequest.data.TransactionID;
+      payload['message'] = redeemBundleRequest.data.TransactionID;
+
+
+        const responseCode = get(
+          redeemBundleRequest.data,
+          "Result"
+        );
+
+    // check for success codes
+    const isSuccessful = SUCCESS_CODES.includes(responseCode);
+    if(isSuccessful){
+      const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
       const response = {
-      status: "ok",
-      statusCode: 200,
-      message: "ok",
-    };
-    return response;
+        ...input,
+        company: company.Name,
+        status: "Success",
+        statusCode: 200,
+        message: "Successfully gratified user",
+      };
+      return response;
+    }else{
+      payload.status = 400;
+      const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
+      const validationErrorResponse = {
+        ...input,
+        status: "Error",
+        statusCode: 400,
+        message: "Sorry, something did not go right",
+        error: {
+          responseRefId: payload.responseRefId,
+          responseDesc: payload.message
+        }
+      };
+      return validationErrorResponse;
     }
+  } catch (error) {
+        payload.status = 500;
+        payload.message = error
+        const newRedemption = await strapi.db.query('api::redemption.redemption').create({data: payload});
+        console.log('error');
+        return {
+          ...input,
+          status: "Error",
+          statusCode: 500,
+          message: "Server Error",
+        };
+      }
     } catch (err) {
-      console.log('error');
-      let error = ctx.badRequest("Companies controller error");
       const errorResponse = {
         status: "Error",
         statusCode: 502,
         message: "Service Unavailable",
-        data: error,
+        data: ctx.badRequest(err),
       };
       return errorResponse;
     }

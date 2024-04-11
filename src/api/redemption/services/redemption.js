@@ -8,7 +8,8 @@ const CryptoJS = require('crypto-js');
 const {
   ACCOUNT_ID,
   APP_PASSWORD,
-  DOP_URL
+  DOP_URL,
+  PRODUCT_ID
 } = require("./consts");
 
 /**
@@ -23,7 +24,6 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
 
       const [timespan, noncetime] = getDateTime();
       const [base64, nonce] = generateDigest(noncetime, timespan, APP_PASSWORD);
-      console.log(nonce);
 
       let headers = {
         "Authorization":"WSSE realm=\"DOP\", profile=\"UsernameToken\"",
@@ -33,12 +33,10 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
 
       };
       const payload = {
-          "ProductID":"SAFPROMO10MBS",
+          "ProductID":PRODUCT_ID,
           "MSISDN":msisdn,
-          "extendInfos":[{"key":"Specification", "value":"450"}]
+          "extendInfos":[{"key":"Specification", "value":"100"}]
       }
-
-      console.log(payload);
 
       try {
         process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -61,11 +59,7 @@ module.exports = createCoreService('api::redemption.redemption', ({strapi}) =>({
         };
         return response;
       } catch (err) {
-        strapi.log.debug("generateAccessTokenError", err);
-        console.log({
-          err,
-        });
-        throw err
+        throw new Error(`Error making request to api ${err}`);
       }
     }
 }));

@@ -19,7 +19,7 @@ module.exports = {
       }
       ctx.body = response
     } catch (err) {
-      ctx.badRequest("controller error", { moreDetails: err });
+      ctx.badRequest("Error fetching redemptions", { moreDetails: err });
     }
   }
 };
