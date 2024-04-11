@@ -362,6 +362,144 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiBusinessPaymentCodeBusinessPaymentCode
+  extends Schema.CollectionType {
+  collectionName: 'business_payment_codes';
+  info: {
+    singularName: 'business-payment-code';
+    pluralName: 'business-payment-codes';
+    displayName: 'BusinessPaymentsCode';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    accountName: Attribute.String & Attribute.Required & Attribute.Unique;
+    type: Attribute.Enumeration<['Paybill', 'Buy Goods Till']>;
+    BusinessShortCode: Attribute.Integer &
+      Attribute.Required &
+      Attribute.Unique;
+    company: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'manyToOne',
+      'api::company.company'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::business-payment-code.business-payment-code',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiCompanyCompany extends Schema.CollectionType {
+  collectionName: 'companies';
+  info: {
+    singularName: 'company';
+    pluralName: 'companies';
+    displayName: 'Company';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    Name: Attribute.String;
+    email: Attribute.Email;
+    registrationNumber: Attribute.String;
+    address: Attribute.String;
+    paymentPlan: Attribute.Enumeration<
+      ['CASH', 'SEVEN_DAYS', 'FOURTEEN_DAYS', 'THIRTY_DAYS']
+    >;
+    phoneNumber: Attribute.String;
+    websiteUrl: Attribute.String;
+    companyLogo: Attribute.Media;
+    status: Attribute.Enumeration<['ACTIVE', 'INACTIVE']> &
+      Attribute.DefaultTo<'INACTIVE'>;
+    redemptions: Attribute.Relation<
+      'api::company.company',
+      'oneToMany',
+      'api::redemption.redemption'
+    >;
+    admin_user: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'admin::user'
+    >;
+    business_payment_codes: Attribute.Relation<
+      'api::company.company',
+      'oneToMany',
+      'api::business-payment-code.business-payment-code'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::company.company',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiRedemptionRedemption extends Schema.CollectionType {
+  collectionName: 'redemptions';
+  info: {
+    singularName: 'redemption';
+    pluralName: 'redemptions';
+    displayName: 'Redemption';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    transactionId: Attribute.String & Attribute.Required & Attribute.Unique;
+    status: Attribute.Integer;
+    responseRefId: Attribute.String;
+    message: Attribute.Text;
+    msisdn: Attribute.BigInteger & Attribute.Private;
+    bundle: Attribute.Enumeration<
+      ['MB_10', 'MB_20', 'MB_50', 'MB_75', 'MB_100', 'MB_150', 'MB_200']
+    >;
+    company: Attribute.Relation<
+      'api::redemption.redemption',
+      'manyToOne',
+      'api::company.company'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::redemption.redemption',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::redemption.redemption',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -788,144 +926,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
   };
 }
 
-export interface ApiBusinessPaymentCodeBusinessPaymentCode
-  extends Schema.CollectionType {
-  collectionName: 'business_payment_codes';
-  info: {
-    singularName: 'business-payment-code';
-    pluralName: 'business-payment-codes';
-    displayName: 'BusinessPaymentsCode';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    accountName: Attribute.String & Attribute.Required & Attribute.Unique;
-    type: Attribute.Enumeration<['Paybill', 'Buy Goods Till']>;
-    BusinessShortCode: Attribute.Integer &
-      Attribute.Required &
-      Attribute.Unique;
-    company: Attribute.Relation<
-      'api::business-payment-code.business-payment-code',
-      'manyToOne',
-      'api::company.company'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::business-payment-code.business-payment-code',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::business-payment-code.business-payment-code',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiCompanyCompany extends Schema.CollectionType {
-  collectionName: 'companies';
-  info: {
-    singularName: 'company';
-    pluralName: 'companies';
-    displayName: 'Company';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    Name: Attribute.String;
-    email: Attribute.Email;
-    registrationNumber: Attribute.String;
-    address: Attribute.String;
-    paymentPlan: Attribute.Enumeration<
-      ['CASH', 'SEVEN_DAYS', 'FOURTEEN_DAYS', 'THIRTY_DAYS']
-    >;
-    phoneNumber: Attribute.String;
-    websiteUrl: Attribute.String;
-    companyLogo: Attribute.Media;
-    status: Attribute.Enumeration<['ACTIVE', 'INACTIVE']> &
-      Attribute.DefaultTo<'INACTIVE'>;
-    redemptions: Attribute.Relation<
-      'api::company.company',
-      'oneToMany',
-      'api::redemption.redemption'
-    >;
-    admin_user: Attribute.Relation<
-      'api::company.company',
-      'oneToOne',
-      'admin::user'
-    >;
-    business_payment_codes: Attribute.Relation<
-      'api::company.company',
-      'oneToMany',
-      'api::business-payment-code.business-payment-code'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::company.company',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::company.company',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiRedemptionRedemption extends Schema.CollectionType {
-  collectionName: 'redemptions';
-  info: {
-    singularName: 'redemption';
-    pluralName: 'redemptions';
-    displayName: 'Redemption';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    transactionId: Attribute.String & Attribute.Required & Attribute.Unique;
-    status: Attribute.Integer;
-    responseRefId: Attribute.String;
-    message: Attribute.Text;
-    msisdn: Attribute.BigInteger & Attribute.Private;
-    bundle: Attribute.Enumeration<
-      ['MB_10', 'MB_20', 'MB_50', 'MB_75', 'MB_100', 'MB_150', 'MB_200']
-    >;
-    company: Attribute.Relation<
-      'api::redemption.redemption',
-      'manyToOne',
-      'api::company.company'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::redemption.redemption',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::redemption.redemption',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -936,6 +936,9 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::business-payment-code.business-payment-code': ApiBusinessPaymentCodeBusinessPaymentCode;
+      'api::company.company': ApiCompanyCompany;
+      'api::redemption.redemption': ApiRedemptionRedemption;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
@@ -944,9 +947,6 @@ declare module '@strapi/types' {
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
-      'api::business-payment-code.business-payment-code': ApiBusinessPaymentCodeBusinessPaymentCode;
-      'api::company.company': ApiCompanyCompany;
-      'api::redemption.redemption': ApiRedemptionRedemption;
     }
   }
 }

@@ -114,7 +114,7 @@ module.exports = {
 
       // update the payload with data from Safaricom response
       payload['responseRefId'] = redeemBundleRequest.data.TransactionID;
-      payload['message'] = redeemBundleRequest.data.TransactionID;
+      payload['message'] = redeemBundleRequest.data.Description;
 
 
         const responseCode = get(
